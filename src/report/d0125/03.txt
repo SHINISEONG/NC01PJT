@@ -1,0 +1,32 @@
+[3-문제1.]
+
+	SELECT
+	e.last_name, e.salary
+	FROM
+	employees e, employees mg
+	WHERE
+	e.manager_id = mg.employee_id(+)
+	AND e.salary > mg.salary;
+
+[3-문제2.]
+
+	SELECT
+	e.first_name, e.last_name, e.salary
+	FROM
+	employees e, jobs j
+	WHERE
+	e.job_id = j.job_id
+	AND j.job_title = 'Sales Representative'
+	AND salary BETWEEN 9000 AND 10000;
+
+[3-문제3.]
+
+	JDBC
+
+	SELECT
+	employee_id eid, first_name fn, salary sal
+	FROM
+	employees
+	WHERE
+	upper(first_name) LIKE upper('%al%')
+	AND salary >= 4000;

@@ -1,0 +1,43 @@
+[6-문제1.]
+	
+	SELECT
+	e.first_name, e.hire_date, mg.employee_id, mg.first_name
+	FROM
+	employees e, employees mg
+	WHERE
+	e.manager_id = mg.employee_id(+)
+	AND EXTRACT(YEAR from e.hire_date) BETWEEN 1980 AND 1989
+	ORDER BY e.first_name;
+
+[6-문제2.]
+	SELECT
+	e.first_name, e.salary, d.department_name
+	FROM
+	employees e, departments d
+	WHERE
+	e.department_id = d.department_id
+	AND d.department_name = 'Sales'
+	AND salary < (
+			SELECT
+			AVG(salary)
+			FROM employees
+			WHERE
+			department_id = 100
+			GROUP BY
+			department_id
+			);
+
+
+[6-문제3.]
+
+	JDBC
+
+	SELECT
+	e.last_name, d.department_name
+	FROM
+	employees e, departments d, locations l
+	WHERE
+	e.department_id = d.department_id
+	AND d.location_id = l.location_id
+	AND l.city = ?
+	AND e.salary BETWEEN ? AND ?

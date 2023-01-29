@@ -1,0 +1,55 @@
+[5-문제1.]
+
+	SELECT
+	*
+	FROM
+	( 
+		SELECT
+			d.department_name NAME, 
+			TO_CHAR(MIN(NVL(e.salary,0))) MINSAL, 
+			TO_CHAR(MAX(NVL(e.salary,0))) MAXSAL, 
+			TO_CHAR(AVG(NVL(e.salary,0))) AVGSAL
+		FROM
+			employees e, departments d
+		WHERE
+			e.department_id = d.department_id
+		GROUP BY
+			d.department_name
+		ORDER BY
+			d.department_name
+	);
+
+[5-문제2.]
+	SELECT
+	e.employee_id, e.department_id, e.salary, ROUND(saliv.avgsal,0) "AVG_SALARY"
+	FROM
+	employees e,	(
+				SELECT
+				AVG(NVL(salary,0)) avgsal, department_id avgid
+				FROM
+				employees
+				GROUP BY department_id
+			) saliv
+	WHERE
+	e.department_id = saliv.avgid
+	AND e.salary > saliv.avgsal;
+
+
+[5-문제3.]
+	
+	JDBC
+
+	SELECT
+	e.employee_id, d.department_name, e.salary, iv.avgsal
+	FROM
+	employees e, departments d, (
+					SELECT
+					department_id, AVG(NVL(salary,0)) avgsal
+					FROM
+					employees
+					GROUP BY department_id
+					) iv
+	WHERE
+	e.department_id = d.department_id
+	AND e.department_id = iv.department_id
+	AND e.department_id = ?

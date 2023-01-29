@@ -1,0 +1,283 @@
+[7-문제1.]
+
+	SELECT
+	EXTRACT(MONTH FROM hire_date) 월, COUNT(last_name) 직원수
+	FROM
+	employees
+	GROUP BY
+	EXTRACT(MONTH FROM hire_date)
+	ORDER BY 월;
+
+[7-문제2.]
+
+	SELECT
+	d.department_name, e.first_name, e.salary
+	FROM
+	employees e, departments d
+	WHERE
+	e.department_id = d.department_id
+	AND (e.salary, e.department_id) IN
+					(
+					SELECT
+					MAX(NVL(salary,0)),department_id
+					FROM
+					employees
+					GROUP BY
+					department_id
+					);
+
+[7-문제3.]
+
+	SELECT
+	d.department_name 부서명, MAX(e.salary) 최대급여, MIN(e.salary) 최소급여, AVG(e.salary) 평균급여
+	FROM
+	employees e, departments d
+	WHERE
+	e.department_id = d.department_id
+	GROUP BY d.department_name
+	HAVING
+	AVG(e.salary) > (
+				SELECT
+				AVG(e.salary)
+				FROM
+				employees e, departments d
+				WHERE
+				e.department_id = d.department_id
+				AND
+				d.department_name = 'IT'
+				GROUP BY d.department_name
+				)
+	AND AVG(e.salary) < (
+				SELECT
+				AVG(e.salary)
+				FROM
+				employees e, departments d
+				WHERE
+				e.department_id = d.department_id
+				AND
+				d.department_name = 'Sales'
+				GROUP BY d.department_name
+				);
+
+
+/* 인라인 뷰 써보려고 한 부분
+	
+	SELECT
+	iv.부서명,
+	iv.최대급여,
+	iv.최소급여,
+	iv.평균급여
+	FROM
+	 (
+		SELECT
+		d.department_name 부서명, MAX(e.salary) 최대급여, MIN(e.salary) 최소급여, AVG(e.salary) 평균급여
+		FROM
+		employees e, departments d
+		WHERE
+		e.department_id = d.department_id
+		GROUP BY d.department_name
+	) iv
+	WHERE
+	iv.평균급여 BETWEEN ( 
+			SELECT
+			평균급여
+			FROM
+			iv
+			WHERE
+			부서명 = 'IT'
+			)
+	AND  ( 
+		SELECT
+		평균급여
+		FROM
+		iv
+		WHERE
+		부서명 = 'Sales'
+		);
+
+*/
+
+
+[7-문제4.]
+
+	SELECT
+	NVL(d.department_name,'<신생부서>') 부서명, count(*) 직원수
+	FROM
+	employees e, departments d
+	WHERE e.department_id = d.department_id(+)
+	GROUP BY NVL(d.department_name,'<신생부서>')
+	HAVING
+	count(*) IN (1);
+	
+[7-문제1(2)]
+	
+	SELECT
+	d.department_name 부서명, LPAD(EXTRACT(MONTH FROM e.hire_date),2,0) 입사월, COUNT(*) 직원수
+	FROM
+	employees e, departments d
+	WHERE
+	e.department_id = d.department_id
+	GROUP BY EXTRACT(MONTH FROM e.hire_date), d.department_name
+	HAVING
+	COUNT(*) >= 5
+	ORDER BY 부서명;
+
+[7-문제2(2)]
+
+	SELECT
+	NVL(c.country_name,'<부서없음>')"국가명", NVL(l.city,'<부서없음>')"도시명", count(*)
+	FROM
+	employees e, countries c, locations l, departments d
+	WHERE
+	e.department_id = d.department_id(+)
+	AND d.location_id = l.location_id(+)
+	AND l.country_id = c.country_id(+)
+	GROUP BY c.country_name, l.city
+	ORDER BY c.country_name;
+
+[7-문제3(2)]
+
+	SELECT
+	e.employee_id 직원아이디, e.first_name 이름, e.salary 급여, iv.deptavg 부서평균
+	FROM 
+	employees e,
+	(
+		SELECT 
+		ROUND(AVG(salary),2) deptavg, 
+		department_id
+		FROM employees
+		GROUP BY department_id
+	) iv
+	WHERE
+	e.department_id = iv.department_id
+	AND
+	(e.salary, e.department_id) IN (SELECT 
+					MAX(salary), 
+					department_id
+					FROM employees
+					GROUP BY department_id
+					)
+	ORDER BY e.employee_id;
+	
+
+-------------------인라인 뷰-------------------------------
+
+	SELECT
+	e.employee_id 직원아이디, e.first_name 이름, e.salary 급여, iv.deptavg 부서평균
+	FROM 
+	employees e,
+	(
+		SELECT 
+		ROUND(AVG(salary),2) deptavg, 
+		MAX(salary) maxsal, 
+		MIN(salary) minsal, 
+		department_id
+		FROM employees
+		GROUP BY department_id
+	) iv
+	WHERE
+	e.department_id = iv.department_id
+	AND
+	e.salary IN (iv.maxsal);
+
+-------------------------온리 서브쿼리--------------------------------
+
+	SELECT
+	e.employee_id 직원아이디, e.first_name 이름, e.salary 급여, ROUND(AVG(e.salary),2)
+	FROM 
+	employees e
+	WHERE
+	(e.salary, e.department_id) IN (
+					SELECT
+					MAX(salary),department_id
+					FROM
+					employees
+					GROUP BY
+					department_id)
+	GROUP BY e.department_id, e.employee_id, e.first_name, e.salary;
+
+[7-문제4(2)]
+
+---- salgrade 테이블 생성 ----
+
+CREATE TABLE salgrade
+(
+	grade		number(2),	
+	losal		number(5)	NOT NULL,
+	hisal		number(5)	NOT NULL,
+	CONSTRAINT salgrad_pk PRIMARY KEY (grade)
+);
+
+---- salgrade에 값 입력 ----
+
+INSERT INTO salgrade
+( grade, losal, hisal )
+VALUES
+( 1, 1000, 5000);
+
+INSERT INTO salgrade
+( grade, losal, hisal )
+VALUES
+( 2, 5001, 10000);
+
+INSERT INTO salgrade
+( grade, losal, hisal )
+VALUES
+( 3, 10001, 20000);
+
+INSERT INTO salgrade
+( grade, losal, hisal )
+VALUES
+( 4, 20001, 30000);
+
+COMMIT;
+
+---------SELECT------------
+
+SELECT
+sg.grade || '등급' "급여등급", COUNT(*)
+FROM
+employees e, salgrade sg
+WHERE
+e.salary BETWEEN sg.losal AND sg.hisal
+GROUP BY sg.grade
+ORDER BY 급여등급;
+
+[7-문제1.(3)]
+
+	SELECT
+	NVL(TO_CHAR(TRUNC(e.commission_pct,1)),'<커미션없음>') 커미션, COUNT(*) 직원수
+	FROM
+	employees e
+	GROUP BY TRUNC(e.commission_pct,1);
+
+[7-문제2.(3)]
+	
+	SELECT
+	e.부서명, e.직원명, e.급여, e.커미션
+	FROM
+	(
+		SELECT
+		d.department_name 부서명, e.first_name 직원명, e.salary 급여, NVL(e.commission_pct,0) 커미션
+		FROM
+		employees e , departments d
+		WHERE
+		e.department_id = d.department_id
+		ORDER BY 커미션 DESC, e.salary DESC
+	)e
+	WHERE ROWNUM <= 4;
+			
+
+[7-문제3.]
+	
+	JDBC
+
+	SELECT
+	l.city, d.department_name, e.first_name, e.salary
+	FROM
+	employees e, departments d, locations l
+	WHERE
+	e.department_id = d.department_id
+	AND d.location_id = l.location_id
+	AND upper(l.city) LIKE upper(?)
+	AND upper(d.department_name) LIKE upper(?)

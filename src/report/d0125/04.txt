@@ -1,0 +1,36 @@
+[4-문제1.]
+
+	SELECT
+	j.job_title, SUM(a.salary)
+	FROM
+	employees a, jobs j
+	WHERE
+	a.job_id = j.job_id
+	GROUP BY j.job_title
+	HAVING SUM(a.salary)>30000
+	ORDER BY SUM(a.salary) DESC;
+
+[4-문제2.]
+
+	SELECT
+	e.employee_id, e.first_name, j.job_title, d.department_name
+	FROM
+	employees e, jobs j, departments d, locations l
+	WHERE
+	e.job_id = j.job_id
+	AND e.department_id = d.department_id
+	AND d.location_id = l.location_id
+	AND l.city = 'Seattle';
+
+[4-문제3.]
+
+	JDBC
+
+	SELECT
+	e.employee_id, e.first_name, e.salary
+	FROM
+	employees e, jobs j
+	WHERE
+	e.job_id = j.job_id
+	AND (j.job_title = 'Accountant'
+	OR j.job_title = 'Stock Clerk');

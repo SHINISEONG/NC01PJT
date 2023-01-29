@@ -1,0 +1,40 @@
+[2-문제1.]
+
+	SELECT
+	e.EMPLOYEE_ID, e.FIRST_NAME, e.LAST_NAME, NVL(d.DEPARTMENT_NAME, '<NOT-ASSIGNED>')
+	FROM
+	employees e, departments d
+	WHERE
+	e.department_id = d.department_id(+)
+	AND EXTRACT(YEAR FROM e.hire_date) = 1999;
+
+[2-문제2.]
+	
+	SELECT
+	*
+	FROM
+		(
+		SELECT e.*
+		FROM
+		employees e, departments d
+		WHERE
+		e.department_id = d.department_id(+)
+		AND d.department_name = 'Marketing'
+		) employees_marketing;
+
+[2-문제3.]
+
+	JDBC
+
+	
+
+	SELECT
+	j.job_title jt, AVG(NVL(e.salary,0)) avgsal
+	FROM
+	employees e, jobs j
+	WHERE
+	e.job_id = j.job_id 
+	AND e.salary>=10000
+	GROUP BY
+	j.job_title
+	ORDER BY avgsal DESC;
